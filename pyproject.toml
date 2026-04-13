@@ -1,0 +1,37 @@
+[build-system]
+requires = [
+  "scikit-build-core>=0.8.0"
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "polysolve"
+version = "v0.0.1"
+description = "A Python binding for PolySolve"
+authors = [
+  { name = "Teseo Schneider", email = "teseo@uvic.ca" }
+]
+license = { text = "MIT" }
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.8"
+keywords = ["Optimization", "Newton", "Python Bindings"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+  "Programming Language :: C++",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Operating System :: OS Independent"
+]
+dependencies = [
+  "numpy",
+  "scipy",
+]
+
+# ---------- scikit-build-core ----------
+[tool.scikit-build]
+cmake.version = ">=3.18"
+cmake.args = ["-DPYBIND11_FINDPYTHON=ON", "-DCMAKE_BUILD_TYPE=Release", "-DPOLYSOLVE_WITH_AMGCL=OFF"]
+wheel.exclude = [
+  "**/.git/**/*"                       # no embedded Git repos
+]
