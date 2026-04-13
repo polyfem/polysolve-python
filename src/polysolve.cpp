@@ -2,6 +2,7 @@
 #include <Eigen/SparseCore>
 
 #include <pybind11/eigen.h>
+#include <pybind11/iostream.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11_json/pybind11_json.hpp>
@@ -10,10 +11,13 @@
 #include <polysolve/nonlinear/Problem.hpp>
 #include <polysolve/nonlinear/Solver.hpp>
 
+#include <spdlog/sinks/ostream_sink.h>
 #include <spdlog/spdlog.h>
 
+#include <iostream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace py = pybind11;
 
@@ -23,6 +27,18 @@ namespace
     using TVector = Problem::TVector;
     using TMatrix = Problem::TMatrix;
     using THessian = Problem::THessian;
+
+    std::shared_ptr<spdlog::logger> python_logger()
+    {
+        auto sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(std::cout, true);
+        auto logger = std::make_shared<spdlog::logger>("polysolve", sink);
+        if (auto default_logger = spdlog::default_logger())
+        {
+            logger->set_level(default_logger->level());
+        }
+        logger->set_pattern("%v");
+        return logger;
+    }
 
     py::function optional_override(const Problem *self, const char *name)
     {
@@ -218,13 +234,14 @@ PYBIND11_MODULE(polysolve, m)
            const py::dict &linear_solver_params,
            const double characteristic_length,
            const bool strict_validation) {
-            TVector x = x0;
-            auto logger = spdlog::default_logger();
-            if (!logger)
-                throw std::runtime_error("spdlog default logger is not available");
+            py::scoped_ostream_redirect stdout_redirect(
+                std::cout, py::module_::import("sys").attr("stdout"));
+            auto logger = python_logger();
 
             nl::json jsolver_params = solver_params.cast<nl::json>();
             nl::json jlinear_solver_params = linear_solver_params.cast<nl::json>();
+
+            TVector x = x0;
 
             auto solver = nonlinear::Solver::create(
                 jsolver_params,
@@ -234,7 +251,7 @@ PYBIND11_MODULE(polysolve, m)
                 strict_validation);
             solver->minimize(problem, x);
 
-            return solver->info();
+            return std::make_pair(x, solver->info());
         },
         "Minimize a nonlinear optimization problem.",
         py::arg("problem"),

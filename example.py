@@ -15,7 +15,7 @@ class Quadratic(polysolve.Problem):
         return 2.0 * scipy.sparse.eye(x.size, format="csc")
 
 
-result = polysolve.minimize(
+x, result = polysolve.minimize(
     Quadratic(),
     np.zeros(3),
     {
@@ -25,3 +25,6 @@ result = polysolve.minimize(
     },
     {"solver": "Eigen::SimplicialLDLT"},
 )
+
+print("Optimal point:", x)
+print("Optimal value:", result)

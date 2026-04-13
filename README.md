@@ -20,7 +20,7 @@ class Quadratic(polysolve.Problem):
         return 2.0 * scipy.sparse.eye(x.size, format="csc")
 
 
-result = polysolve.minimize(
+x, result = polysolve.minimize(
     Quadratic(),
     np.zeros(3),
     {
@@ -31,9 +31,8 @@ result = polysolve.minimize(
     {"solver": "Eigen::SimplicialLDLT"},
 )
 
-print(result["x"])
-print(result["status"])
-print(result["info"])
+print(x)
+print(result)
 ```
 
 Python subclasses must implement `value(x)`, `gradient(x)`, and `hessian(x)`. Optional PolySolve callbacks such as `solution_changed`,  `stop`, `is_step_valid`, and `max_step_size` can also be implemented on the subclass.
