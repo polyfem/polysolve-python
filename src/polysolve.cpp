@@ -190,6 +190,7 @@ PYBIND11_MODULE(polysolve, m)
 {
     using namespace polysolve;
     namespace nonlinear = polysolve::nonlinear;
+    namespace nl = nlohmann;
 
     m.doc() = "Python bindings for PolySolve nonlinear optimization.";
 
@@ -213,8 +214,8 @@ PYBIND11_MODULE(polysolve, m)
         "minimize",
         [](Problem &problem,
            const TVector &x0,
-           const json &solver_params,
-           const json &linear_solver_params,
+           const py::dict &solver_params,
+           const py::dict &linear_solver_params,
            const double characteristic_length,
            const bool strict_validation) {
             TVector x = x0;
@@ -222,9 +223,12 @@ PYBIND11_MODULE(polysolve, m)
             if (!logger)
                 throw std::runtime_error("spdlog default logger is not available");
 
+            nl::json jsolver_params = solver_params.cast<nl::json>();
+            nl::json jlinear_solver_params = linear_solver_params.cast<nl::json>();
+
             auto solver = nonlinear::Solver::create(
-                solver_params,
-                linear_solver_params,
+                jsolver_params,
+                jlinear_solver_params,
                 characteristic_length,
                 *logger,
                 strict_validation);
