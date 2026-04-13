@@ -31,6 +31,7 @@ dependencies = [
 # ---------- scikit-build-core ----------
 [tool.scikit-build]
 cmake.version = ">=3.18"
+build-dir = "build/{wheel_tag}"
 cmake.args = ["-DPYBIND11_FINDPYTHON=ON", "-DCMAKE_BUILD_TYPE=Release", "-DPOLYSOLVE_WITH_AMGCL=OFF"]
 wheel.exclude = [
   "**/.git/**/*"                       # no embedded Git repos
