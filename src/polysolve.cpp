@@ -28,14 +28,11 @@ namespace
     using TMatrix = Problem::TMatrix;
     using THessian = Problem::THessian;
 
-    std::shared_ptr<spdlog::logger> python_logger()
+    std::shared_ptr<spdlog::logger> python_logger(const spdlog::level::level_enum log_level)
     {
         auto sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(std::cout, true);
         auto logger = std::make_shared<spdlog::logger>("polysolve", sink);
-        if (auto default_logger = spdlog::default_logger())
-        {
-            logger->set_level(default_logger->level());
-        }
+        logger->set_level(log_level);
         logger->set_pattern("%v");
         return logger;
     }
@@ -210,6 +207,15 @@ PYBIND11_MODULE(polysolve, m)
 
     m.doc() = "Python bindings for PolySolve nonlinear optimization.";
 
+    py::enum_<spdlog::level::level_enum>(m, "LogLevel")
+        .value("trace", spdlog::level::trace)
+        .value("debug", spdlog::level::debug)
+        .value("info", spdlog::level::info)
+        .value("warn", spdlog::level::warn)
+        .value("error", spdlog::level::err)
+        .value("critical", spdlog::level::critical)
+        .value("off", spdlog::level::off);
+
     py::class_<Problem, PyProblem>(m, "Problem")
         .def(py::init<>())
         .def("value", [](Problem &problem, const TVector &x) {
@@ -233,10 +239,11 @@ PYBIND11_MODULE(polysolve, m)
            const py::dict &solver_params,
            const py::dict &linear_solver_params,
            const double characteristic_length,
+           const spdlog::level::level_enum log_level,
            const bool strict_validation) {
             py::scoped_ostream_redirect stdout_redirect(
                 std::cout, py::module_::import("sys").attr("stdout"));
-            auto logger = python_logger();
+            auto logger = python_logger(log_level);
 
             nl::json jsolver_params = solver_params.cast<nl::json>();
             nl::json jlinear_solver_params = linear_solver_params.cast<nl::json>();
@@ -259,5 +266,6 @@ PYBIND11_MODULE(polysolve, m)
         py::arg("solver_params") = py::dict(),
         py::arg("linear_solver_params") = py::dict(),
         py::arg("characteristic_length") = 1.0,
+        py::arg("log_level") = spdlog::level::info,
         py::arg("strict_validation") = true);
 }
