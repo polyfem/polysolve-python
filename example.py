@@ -14,6 +14,8 @@ class Quadratic(polysolve.Problem):
     def hessian(self, x):
         return 2.0 * scipy.sparse.eye(x.size, format="csc")
 
+    def post_step(self, iter_num, solver_info, x, grad):
+        print(f"Iteration {iter_num}: x = {x}, grad = {grad}")
 
 x, result = polysolve.minimize(
     Quadratic(),

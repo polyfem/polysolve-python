@@ -196,7 +196,15 @@ namespace
                 return f(x).cast<bool>();
             return Problem::stop(x);
         }
+
+        void post_step(const polysolve::nonlinear::PostStepData &data) override
+        {
+            py::gil_scoped_acquire gil;
+            if (py::function f = optional_override(this, "post_step"))
+                f(data.iter_num, data.solver_info, data.x, data.grad);
+        }
     };
+
 } // namespace
 
 PYBIND11_MODULE(polysolve, m)
